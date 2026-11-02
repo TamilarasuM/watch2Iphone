@@ -1,0 +1,66 @@
+name: iOS build (unsigned IPA)
+
+# Builds the iPhone app on a GitHub-hosted Mac (no local Mac needed). The IPA is unsigned: it is signed on
+# Windows with Sideloadly using a free Apple ID.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "ios-app/**"
+      - ".github/workflows/ios-build.yml"
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install tools
+        run: brew install xcodegen ldid
+
+      - name: Show toolchain
+        run: |
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+
+      - name: Generate the Xcode project
+        working-directory: ios-app
+        run: xcodegen generate
+
+      - name: Build (unsigned)
+        working-directory: ios-app
+        run: |
+          xcodebuild \
+            -project Watch2iPhoneHealth.xcodeproj \
+            -scheme Watch2iPhoneHealth \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Stamp entitlements into the binary
+        working-directory: ios-app
+        run: |
+          APP=build/Build/Products/Release-iphoneos/Watch2iPhoneHealth.app
+          ls -la "$APP"
+          # An unsigned build does not embed entitlements, so add them where a signing tool can see them.
+          ldid -SSupport/Watch2iPhoneHealth.entitlements "$APP/Watch2iPhoneHealth"
+          echo "--- entitlements now in the binary ---"
+          ldid -e "$APP/Watch2iPhoneHealth"
+
+      - name: Package IPA
+        working-directory: ios-app
+        run: |
+          APP=build/Build/Products/Release-iphoneos/Watch2iPhoneHealth.app
+          mkdir -p Payload
+          cp -R "$APP" Payload/
+          zip -qry Watch2iPhoneHealth.ipa Payload
+          unzip -l Watch2iPhoneHealth.ipa | tail -8
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: Watch2iPhoneHealth-ipa
+          path: ios-app/Watch2iPhoneHealth.ipa
+          if-no-files-found: error

@@ -1,0 +1,9 @@
+# JVM crash dumps (contain machine details)
+hs_err_pid*.log
+replay_pid*.log
+
+# iOS / macOS
+.DS_Store
+*.ipa
+ios-app/*.xcodeproj/
+ios-app/build/

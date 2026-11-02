@@ -1,0 +1,37 @@
+name: Watch2iPhoneHealth
+
+options:
+  bundleIdPrefix: com.tamilarasu
+  deploymentTarget:
+    iOS: "16.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+
+targets:
+  Watch2iPhoneHealth:
+    type: application
+    platform: iOS
+    sources:
+      - path: Watch2iPhoneHealth
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.tamilarasu.watch2iphone.health
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        TARGETED_DEVICE_FAMILY: "1"
+    # Generated into Support/ (outside the sources folder) by `xcodegen generate`.
+    info:
+      path: Support/Info.plist
+      properties:
+        CFBundleDisplayName: Watch2iPhone Health
+        UILaunchScreen: {}
+        NSHealthShareUsageDescription: Lets Watch2iPhone read the health data it already wrote, to avoid duplicates.
+        NSHealthUpdateUsageDescription: Lets Watch2iPhone save steps, heart rate and workouts from your Wear OS watch to Apple Health.
+    # com.apple.developer.healthkit is enough for steps, heart rate and workouts. The separate
+    # com.apple.developer.healthkit.access entitlement is only for extra-sensitive types (e.g. health records).
+    entitlements:
+      path: Support/Watch2iPhoneHealth.entitlements
+      properties:
+        com.apple.developer.healthkit: true
